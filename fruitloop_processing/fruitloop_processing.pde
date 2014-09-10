@@ -1,3 +1,6 @@
+import processing.serial.*;
+
+
 //step sequencer 0.1 (no bpm yet, just timer)
 //started from 2d array demo on processing.org
 
@@ -21,14 +24,33 @@ int steptimer;
 boolean play = false;
 int cellSize=200;
 
+//byte[] bytes = new byte[2];
+
+byte uno=0;
+byte due=0;
+
+
+Serial myPort;  // Create object from Serial class
+
 void setup() {
   size(cellSize*cols, cellSize*rows);
+ 
+//  bytes[0]=0;
+ // bytes[1]=1;
+   
   grid = new Cell[cols][rows];
   for (int i = 0; i < cols; i++) {
     for (int j = 0; j < rows; j++) {
       grid[i][j] = new Cell(i*cellSize, j*cellSize, cellSize, cellSize);
     }
   }
+  println(Serial.list());
+  
+  String portName = Serial.list()[2];
+  myPort = new Serial(this, portName, 9600);
+  
+  
+  
 }
 
 void draw() {
@@ -36,14 +58,20 @@ void draw() {
 
   for (int i = 0; i < cols; i++) {
     for (int j = 0; j < rows; j++) {
+      
       if ((i & 1) == 0) {
         // even rows white
         grid[i][j].display(255);
+
+        
       } else {
         // odd rows gray
         grid[i][j].display(220);
+
+        
       }
     }
+  }
 
     if (play == true) {
       int j;
@@ -52,8 +80,8 @@ void draw() {
         count_down = delaytime - count_up;
         steptimer = floor(4 / (delaytime / count_up));       
         fill(0);
-//        textSize(12);
-//        text(steptimer, mouseX, mouseY);
+        //        textSize(12);
+        //        text(steptimer, mouseX, mouseY);
         for (j = 0; j < rows; j++) {
           grid[steptimer][j].display(120);
           grid[steptimer][j].trigger(steptimer, j);
@@ -62,8 +90,43 @@ void draw() {
         starttime = millis();
         j = 0;
       }
-    }
+      
+      
+      for (int i = 0; i < cols; i++) {
+        for (int k = 0; k < rows; k++) {
+
+          if (grid[i][k].active) {
+            // even rows white
+
+            if ((i+4*k)<8) {
+              uno|=(1<<i+4*k);
+            } else {
+              due|=(1<<(i+4*k)-8);
+
+            }
+            
+          } else {
+            // odd rows gray
+
+            if ((i+4*k)<8) {
+              uno&=~(1<<i+4*k); //chiedete a vanzati f.vanzati@arduino.cc
+            } else {
+              due&=~(1<<(i+4*k)-8);
+            }
+          }
+        }
+      }
   }
+  
+  
+  print(binary(uno));
+  print(binary(due));
+  
+  myPort.write(uno);
+  myPort.write(due);
+  myPort.write(',');
+  
+  println();
 }
 
 void mousePressed() {
@@ -127,12 +190,12 @@ class Cell {
   void trigger(int x, int y) {
     int y2;
     y2 = y+1;
-//    textSize(21);
-//    if (active == true) {
-//      //cell is triggered, do stuff here (play wav, whatever)
-//      //i just display text showing the triggered cell[][] info for testing
-//      text(x + " " + y, 210, y2*20);
-//    }
+    //    textSize(21);
+    //    if (active == true) {
+    //      //cell is triggered, do stuff here (play wav, whatever)
+    //      //i just display text showing the triggered cell[][] info for testing
+    //      text(x + " " + y, 210, y2*20);
+    //    }
   }
 }
 
@@ -143,7 +206,7 @@ void keyPressed() {
   //    char letter = 'N';
 
   switch(key) {
-  case '1': 
+  case '1':
     println("00");  // Does not execute
     grid[0][0].active=!grid[0][0].active;
 
