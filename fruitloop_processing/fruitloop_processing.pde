@@ -11,12 +11,21 @@ import processing.serial.*;
 // activate samples with mouse or keyboard 1234qwerasdfzxcv
 // start/stop loop with right-click
 
+import ddf.minim.*;
+Minim minim;
+
+
+AudioSample[][] brek;
+AudioSample[][] hiphop;
+
+
+
 Cell[][] grid;
 
 int cols = 4;
 int rows = 4;
 int starttime;
-int delaytime = 925;
+int delaytime = 2000;
 int curtime;  
 float count_up;
 float count_down;
@@ -33,11 +42,27 @@ byte due=0;
 Serial myPort;  // Create object from Serial class
 
 void setup() {
+
+  brek= new AudioSample[4][4];
+  //load audio samples
+
+  minim = new Minim(this);
+
+  for (int i=0; i<4; i++) {
+    println("break-beat-0"+(i+1)+".mp3");
+    brek[i][0]=minim.loadSample("break-beat-0"+(i+1)+".mp3", 512);
+    brek[i][1]=minim.loadSample("break-perc-0"+(i+1)+".mp3", 512);
+    brek[i][2]=minim.loadSample("break-piano-0"+(i+1)+".mp3", 512);
+    brek[i][3]=minim.loadSample("break-strings-0"+(i+1)+".mp3", 512);
+  }
+
+
+
   size(cellSize*cols, cellSize*rows);
- 
-//  bytes[0]=0;
- // bytes[1]=1;
-   
+
+  //  bytes[0]=0;
+  // bytes[1]=1;
+
   grid = new Cell[cols][rows];
   for (int i = 0; i < cols; i++) {
     for (int j = 0; j < rows; j++) {
@@ -45,12 +70,9 @@ void setup() {
     }
   }
   println(Serial.list());
-  
+
   String portName = Serial.list()[2];
   myPort = new Serial(this, portName, 9600);
-  
-  
-  
 }
 
 void draw() {
@@ -58,74 +80,95 @@ void draw() {
 
   for (int i = 0; i < cols; i++) {
     for (int j = 0; j < rows; j++) {
-      
+
       if ((i & 1) == 0) {
         // even rows white
         grid[i][j].display(255);
-
-        
       } else {
         // odd rows gray
         grid[i][j].display(220);
-
-        
       }
     }
   }
 
-    if (play == true) {
-      int j;
-      if (millis() - starttime < delaytime) {      
-        count_up = (millis() - starttime);
-        count_down = delaytime - count_up;
-        steptimer = floor(4 / (delaytime / count_up));       
-        fill(0);
-        //        textSize(12);
-        //        text(steptimer, mouseX, mouseY);
-        for (j = 0; j < rows; j++) {
-          grid[steptimer][j].display(120);
+  if (play == true) {
+    int j;
+    if (millis() - starttime < delaytime) {      
+      count_up = (millis() - starttime);
+      count_down = delaytime - count_up;
+      steptimer = floor(4 / (delaytime / count_up));       
+      fill(0);
+      //        textSize(12);
+      //        text(steptimer, mouseX, mouseY);
+      for (j = 0; j < rows; j++) {
+        grid[steptimer][j].display(120);  
+        if (grid[steptimer][j].active) {       
           grid[steptimer][j].trigger(steptimer, j);
         }
-      } else {
-        starttime = millis();
-        j = 0;
       }
-      
-      
-      for (int i = 0; i < cols; i++) {
-        for (int k = 0; k < rows; k++) {
 
-          if (grid[i][k].active) {
-            // even rows white
+      switch (steptimer) {
+      case 0:
+        uno = byte(unbinary("00010001"));
+        due = byte(unbinary("00010001"));
+        break; 
+      case 1:
+        uno = byte(unbinary("00100010"));
+        due = byte(unbinary("00100010"));
+        break; 
+      case 2:
+        uno = byte(unbinary("01000100"));
+        due = byte(unbinary("01000100"));
+        break; 
+      case 3:
+        uno = byte(unbinary("10001000"));
+        due = byte(unbinary("10001000"));
+        break;
+      }
+      print(binary(uno));
+      println(binary(due));
+
+      myPort.write(due);
+      myPort.write(uno);
+      myPort.write(',');
+    } else {
+      starttime = millis();
+      j = 0;
+    }
+
+
+    for (int i = 0; i < cols; i++) {
+      for (int k = 0; k < rows; k++) {
+
+        if (grid[i][k].active) {
+          // even rows white
 
             if ((i+4*k)<8) {
-              uno|=(1<<i+4*k);
-            } else {
-              due|=(1<<(i+4*k)-8);
-
-            }
-            
+            uno|=(1<<i+4*k);
           } else {
-            // odd rows gray
+            due|=(1<<(i+4*k)-8);
+          }
+        } else {
+          // odd rows gray
 
-            if ((i+4*k)<8) {
-              uno&=~(1<<i+4*k); //chiedete a vanzati f.vanzati@arduino.cc
-            } else {
-              due&=~(1<<(i+4*k)-8);
-            }
+          if ((i+4*k)<8) {
+            uno&=~(1<<i+4*k); //chiedete a vanzati f.vanzati@arduino.cc
+          } else {
+            due&=~(1<<(i+4*k)-8);
           }
         }
       }
+    }
   }
-  
-  
-  print(binary(uno));
-  print(binary(due));
-  
-  myPort.write(uno);
+
+  //print(binary(uno));
+  //print(binary(due));
+
+
   myPort.write(due);
+  myPort.write(uno);
   myPort.write(',');
-  
+
   println();
 }
 
@@ -196,6 +239,8 @@ class Cell {
     //      //i just display text showing the triggered cell[][] info for testing
     //      text(x + " " + y, 210, y2*20);
     //    }
+
+    brek[x][y].trigger();
   }
 }
 
