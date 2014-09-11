@@ -1,4 +1,23 @@
-import processing.serial.*;
+import processing.core.*; 
+import processing.data.*; 
+import processing.event.*; 
+import processing.opengl.*; 
+
+import processing.serial.*; 
+import ddf.minim.*; 
+
+import java.util.HashMap; 
+import java.util.ArrayList; 
+import java.io.File; 
+import java.io.BufferedReader; 
+import java.io.PrintWriter; 
+import java.io.InputStream; 
+import java.io.OutputStream; 
+import java.io.IOException; 
+
+public class fruitloop_processing extends PApplet {
+
+
 
 
 //step sequencer 0.1 (no bpm yet, just timer)
@@ -11,7 +30,7 @@ import processing.serial.*;
 // activate samples with mouse or keyboard 1234qwerasdfzxcv
 // start/stop loop with right-click
 
-import ddf.minim.*;
+
 Minim minim;
 
 
@@ -41,7 +60,7 @@ byte due=0;
 
 Serial myPort;  // Create object from Serial class
 
-void setup() {
+public void setup() {
 
   brek= new AudioSample[4][4];
   //load audio samples
@@ -75,7 +94,7 @@ void setup() {
   myPort = new Serial(this, portName, 9600);
 }
 
-void draw() {
+public void draw() {
   background(0);
 
   for (int i = 0; i < cols; i++) {
@@ -109,20 +128,20 @@ void draw() {
 
       switch (steptimer) {
       case 0:
-        uno = byte(unbinary("00010001"));
-        due = byte(unbinary("00010001"));
+        uno = PApplet.parseByte(unbinary("00010001"));
+        due = PApplet.parseByte(unbinary("00010001"));
         break; 
       case 1:
-        uno = byte(unbinary("00100010"));
-        due = byte(unbinary("00100010"));
+        uno = PApplet.parseByte(unbinary("00100010"));
+        due = PApplet.parseByte(unbinary("00100010"));
         break; 
       case 2:
-        uno = byte(unbinary("01000100"));
-        due = byte(unbinary("01000100"));
+        uno = PApplet.parseByte(unbinary("01000100"));
+        due = PApplet.parseByte(unbinary("01000100"));
         break; 
       case 3:
-        uno = byte(unbinary("10001000"));
-        due = byte(unbinary("10001000"));
+        uno = PApplet.parseByte(unbinary("10001000"));
+        due = PApplet.parseByte(unbinary("10001000"));
         break;
       }
       print(binary(uno));
@@ -172,11 +191,11 @@ void draw() {
   println();
 }
 
-void mousePressed() {
+public void mousePressed() {
   if (mouseButton == LEFT) {
 
-    int xX = int(mouseX)/cellSize;
-    int yY = int(mouseY)/cellSize;   
+    int xX = PApplet.parseInt(mouseX)/cellSize;
+    int yY = PApplet.parseInt(mouseY)/cellSize;   
     //    fill(255);
     //    textSize(12);
     //    text( xX + " " + yY, mouseX, mouseY);
@@ -206,7 +225,7 @@ class Cell {
     h = tempH;
   }
 
-  void display( int step ) {
+  public void display( int step ) {
     stroke(0);
 
     if (active == true) {
@@ -222,7 +241,7 @@ class Cell {
     //text("Y: " + y, x, y);
   }
 
-  void pressed() {
+  public void pressed() {
     if (active == true) { 
       active = false;
     } else { 
@@ -230,7 +249,7 @@ class Cell {
     }
   }
 
-  void trigger(int x, int y) {
+  public void trigger(int x, int y) {
     int y2;
     y2 = y+1;
     //    textSize(21);
@@ -244,7 +263,7 @@ class Cell {
   }
 }
 
-void keyPressed() {
+public void keyPressed() {
   int keyIndex = -1;
   //  switch(key){
   //
@@ -339,3 +358,12 @@ void keyPressed() {
   }
 }
 
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "--full-screen", "--bgcolor=#666666", "--stop-color=#cccccc", "fruitloop_processing" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
+    }
+  }
+}
