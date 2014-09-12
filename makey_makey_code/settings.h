@@ -27,7 +27,7 @@ int keyCodes[NUM_INPUTS] = {
   
   // female header on the back left side
   
-  'q',                // pin D5
+  'q',          z      // pin D5
   '1',                // pin D4
   's',                // pin D3
   'x',                // pin D2
@@ -42,7 +42,7 @@ int keyCodes[NUM_INPUTS] = {
   'd',    // pin A3
   'c',   // pin A2
   'f',         // pin A1
-  'vr'         // pin A0
+  'v'         // pin A0
 };
 
 ///////////////////////////
