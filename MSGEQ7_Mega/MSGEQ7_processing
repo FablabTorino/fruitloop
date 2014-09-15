@@ -1,0 +1,109 @@
+/* http://wiring.org.co/learning/basics/sendingmultipledata.html
+ source inspiratory of the code
+ read 7 int values from serial 
+ */
+
+import processing.serial.*;
+
+Serial myPort;
+int lnfeed = 10;   // Linefeed in ASCII
+int numBand = 7;  // number of band
+int band[];       // array to read the 7 values
+
+void setup() {
+  size(450, 200);
+
+
+  String portName = Serial.list()[0];
+  myPort = new Serial(this, portName, 115200);
+  // read bytes into a buffer until you get a linefeed (ASCII 10):
+  myPort.bufferUntil(lnfeed);
+}
+
+
+
+
+
+void draw() {
+  background(0);
+  if ((band != null)) {
+    // if valid data arrays are not null
+    for (int i=0; i < numBand; i++) {
+
+      float value = band[i]/4.0;
+
+      noStroke();
+      fill(random(0, 255), random(0, 255), random(0, 255));
+      rect ((i*width/7)+3, height-value, (width/7)-6, value);
+    }
+  }
+}
+
+
+void serialEvent(Serial myPort) {
+
+  String myString = myPort.readStringUntil(lnfeed);
+
+  // if you got any bytes other than the linefeed:
+  if (myString != null) {
+
+    myString = trim(myString);
+    band = int(split(myString, ','));
+    //print(band.length);
+    for (int bandNum = 0; bandNum < band.length-1; bandNum++) {
+      print("Sensor " + bandNum + ": " + band[bandNum] + "\t");
+    }
+
+    // add a linefeed after all the sensor values are printed:
+    println();
+  }
+}
+
+/*
+arduino code:
+
+// https://www.sparkfun.com/datasheets/Components/General/MSGEQ7.pdf
+//The seven band graphic equalizer IC is a CMOS chip that divides
+//the audio spectrum into seven bands.
+//63Hz, 160Hz, 400Hz, 1kHz, 2.5kHz, 6.25kHz and 16kHz.
+// we are testing this on an Arduino UNO
+
+
+const int msg7RESET = 5; //34; //5; // yellow cable for fablabTO!
+const int msg7Strobe = 4; //36; ////4; // white cable for fablabTO!
+const int msg7DCout = A0; //A7; // A0; // green cable for FablabTO!
+//const int LEDpins[16] = {2,3,4,5,6,7,8,9,10,11,12,13,54,55,56,57}; // there are 5 LEDs and 7 freq bands. So, repeat LEDs
+//#define pushButton 2
+
+
+void setup() {
+  Serial.begin(115200);
+  //initialize the digital pin as an output.
+  //Pin 13 has an LED connected on most Arduino boards:
+//  for (int x=0; x<15; x++) {
+//    pinMode(LEDpins[x], OUTPUT);
+//  }
+  pinMode(msg7RESET, OUTPUT);
+  pinMode(msg7Strobe, OUTPUT);
+  //pinMode(pushButton, INPUT); // never actually used in this example.
+  //digitalWrite(pushButton, HIGH); // Enable internal pull-up
+}
+void loop() {
+  digitalWrite(msg7RESET, HIGH); // reset the MSGEQ7's counter
+  delay(5);
+  digitalWrite(msg7RESET, LOW);
+  for (int x = 0; x < 7; x++) {
+    digitalWrite(msg7Strobe, LOW); // output each DC value for each freq band
+    delayMicroseconds(35); // to allow the output to settle
+    int spectrumRead = analogRead(msg7DCout);
+//    Serial.print(x);
+//    Serial.print(" ");
+    Serial.print(spectrumRead);
+    Serial.print(",");
+    digitalWrite(msg7Strobe, HIGH);
+    //delay(10);
+  }
+  Serial.println();
+  delay(100);
+}
+*/
